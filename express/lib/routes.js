@@ -5,9 +5,8 @@ exports.order = function order(req, res, next) {
   console.log({ order });
 
   if (!order.prices || !order.quantities || !order.country || !order.reduction) {
-    res.status(404).json({});
     console.log('error: missing property');
-    return;
+    return res.status(404).json({});
   }
 
   let tax;
@@ -24,7 +23,7 @@ exports.order = function order(req, res, next) {
   } else if(['BE', 'SI'].includes(order.country)) {
     tax = 0.24;
   } else if(['SK'].includes(order.country)) {
-    tax = 0.18;
+    return res.status(404).json({});
   } else if(['FI'].includes(order.country)) {
     tax = 0.17;
   } else if(['HU'].includes(order.country)) {
@@ -32,9 +31,8 @@ exports.order = function order(req, res, next) {
   } else if(['EE', 'AT'].includes(order.country)) {
     tax = 0.22;
   } else {
-    res.status(404).json({});
     console.log('error: unknown country');
-    return;
+    return res.status(400).json({});
   }
 
   let totalWithoutTax = 0;
@@ -53,12 +51,10 @@ exports.order = function order(req, res, next) {
   // res.status(404).json({});
 
   if (isNaN(totalWithoutTax)) {
-    res.status(404);
-    return;
+    return res.status(404);
   }
 
-  res.json({ total: totalWithReduction });
-  return;
+  return res.json({ total: totalWithReduction });
 }
 
 function _getTotalWithReduction(total, reduction) {
