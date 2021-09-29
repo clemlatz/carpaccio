@@ -1,3 +1,5 @@
+const { restore } = require("sinon");
+
 exports.order = function order(req, res, next) {
   const order = req.body;
   console.log({ order });
@@ -31,7 +33,7 @@ exports.order = function order(req, res, next) {
     tax = 0.22;
   } else {
     res.status(404).json({});
-    console.log('unknown country');
+    console.log('error: unknown country');
     return;
   }
 
@@ -42,55 +44,46 @@ exports.order = function order(req, res, next) {
   console.log({totalWithoutTax})
 
   const total = totalWithoutTax * (1 + tax);
-
   console.log({total});
 
-  if (total < 1000) {
+  const totalWithReduction = _getTotalWithReduction(total, order.reduction);
+  console.log({totalWithReduction});
 
-    res.json({ total });
-    return;
+  // KILLSWITCH
+  // res.status(404).json({});
+
+  res.json({ total: totalWithReduction });
+  return;
+}
+
+function _getTotalWithReduction(total, reduction) {
+  if (total < 1000 || reduction === "PAY THE PRICE") {
+    return total;
   }
 
-  if (order.reduction === "HALF PRICE") {
-    const totalWithReduction = total * 0.5;
-    res.json({ total: totalWithReduction });
-    return;
+  if (reduction === "HALF PRICE") {
+    return total * 0.5;
   }
 
   if (total >= 1000 && total < 5000) {
-    const totalWithReduction = total * 0.97;
-    res.json({ total: totalWithReduction });
-    return;
+    return total * 0.97;
   }
 
   if (total >= 5000 && total < 7000) {
-    const totalWithReduction = total * 0.95;
-    res.json({ total: totalWithReduction });
-    return;
+    return total * 0.95;
   }
 
   if (total >= 7000 && total < 10000) {
-    const totalWithReduction = total * 0.93;
-    res.json({ total: totalWithReduction });
-    return;
+    return total * 0.93;
   }
 
   if (total >= 10000 && total < 50000) {
-    const totalWithReduction = total * 0.90;
-    res.json({ total: totalWithReduction });
-    return;
+    return total * 0.90;
   }
 
   if (total >= 50000) {
-    const totalWithReduction = total * 0.85;
-    res.json({ total: totalWithReduction });
-    return;
+    return total * 0.85;
   }
-
-  res.status(404).json({});
-
-  console.log('unknown problem');
-  return;
 }
 
 exports.feedback = function feedback(req, res, next) {
