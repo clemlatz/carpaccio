@@ -1,13 +1,17 @@
-const { restore } = require("sinon");
-
 exports.order = function order(req, res, next) {
   const order = req.body;
   console.log({ order });
 
   if (!order.prices || !order.quantities || !order.country || !order.reduction) {
     console.log('error: missing property');
-    return res.status(404).json({});
+    return res.status(400).json({});
   }
+
+  let totalWithoutTax = 0;
+  for (i = 0; i < order.prices.length; i++) {
+    totalWithoutTax += order.prices[i] * order.quantities[i];
+  }
+  console.log({totalWithoutTax})
 
   let tax;
   if (['DE', 'FR', 'RO', 'NL', 'EL', 'LV', 'MT'].includes(order.country)) {
@@ -23,7 +27,11 @@ exports.order = function order(req, res, next) {
   } else if(['BE', 'SI'].includes(order.country)) {
     tax = 0.24;
   } else if(['SK'].includes(order.country)) {
-    return res.status(404).json({});
+    if (totalWithoutTax > 1000) {
+      tax = 0.50;
+    } else {
+      tax = 0.18;
+    }
   } else if(['FI'].includes(order.country)) {
     tax = 0.17;
   } else if(['HU'].includes(order.country)) {
@@ -34,12 +42,6 @@ exports.order = function order(req, res, next) {
     console.log('error: unknown country');
     return res.status(400).json({});
   }
-
-  let totalWithoutTax = 0;
-  for (i = 0; i < order.prices.length; i++) {
-    totalWithoutTax += order.prices[i] * order.quantities[i];
-  }
-  console.log({totalWithoutTax})
 
   const total = totalWithoutTax * (1 + tax);
   console.log({total});
