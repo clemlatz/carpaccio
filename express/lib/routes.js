@@ -4,7 +4,7 @@ exports.order = function order(req, res, next) {
   const order = req.body;
   console.log({ order });
 
-  if (!order.prices && !order.quantities && !order.country && !order.reduction) {
+  if (!order.prices || !order.quantities || !order.country || !order.reduction) {
     res.status(404).json({});
     console.log('error: missing property');
     return;
@@ -51,6 +51,11 @@ exports.order = function order(req, res, next) {
 
   // KILLSWITCH
   // res.status(404).json({});
+
+  if (isNaN(totalWithoutTax)) {
+    res.status(404);
+    return;
+  }
 
   res.json({ total: totalWithReduction });
   return;
